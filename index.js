@@ -24,8 +24,6 @@ app.get('/', (req, res) => {
     res.send("Hello Saifullah! Its from node API Server");
 });
 
-// Database Connection - **Important for Vercel**
-// Move database connection outside the listening block
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://rsaifullah991:hMSEM5LXhIGqCQXl@lsg-db.f2faw.mongodb.net/Node-API?retryWrites=true&w=majority&appName=LSG-DB");
@@ -36,10 +34,6 @@ const connectDB = async () => {
     }
 };
 
-connectDB(); // Call the connection function
+connectDB();
 
-// **Remove the app.listen() block entirely for Vercel**
-// Vercel will handle starting the serverless function
-
-// Export the app for Vercel
 module.exports = app;
