@@ -1,39 +1,47 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const contactRoute = require('./routes/contact.route.js');
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const contactRoute = require("./routes/contact.route.js");
+
 const app = express();
 
-// middleware
-app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: "1mb" })); // Limit request body size
 
-// Error handling middleware for JSON parsing
+// Handle JSON parsing errors
 app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-      status: 400,
-      message: 'Invalid JSON format'
-    });
-  }
-  next();
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ status: 400, message: "Invalid JSON format" });
+    }
+    next();
 });
 
-// routes
+// Routes
 app.use("/api/contacts", contactRoute);
 
-app.get('/', (req, res) => {
-    res.send("Hello Saifullah! Its from node API Server");
+app.get("/", (req, res) => {
+    res.send("Hello Saifullah! It's from Node API Server");
 });
 
+// MongoDB Connection with Retry Logic
 const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://rsaifullah991:hMSEM5LXhIGqCQXl@lsg-db.f2faw.mongodb.net/Node-API?retryWrites=true&w=majority&appName=LSG-DB");
-        console.log("MongoDB Connected");
+        await mongoose.connect(process.env.MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log("✅ MongoDB Connected");
     } catch (error) {
-        console.error("MongoDB Connection Error:", error);
-        process.exit(1); // Exit process on connection failure
+        console.error("❌ MongoDB Connection Error:", error);
+        setTimeout(connectDB, 5000); // Retry connection after 5s
     }
 };
-
 connectDB();
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 module.exports = app;
